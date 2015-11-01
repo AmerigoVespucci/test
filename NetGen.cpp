@@ -402,13 +402,6 @@ bool NetGen::Classify() {
 	return true;
 }
 
-//std::vector<pair<float, int> > NetGen::Predict() {
-//
-//
-//
-//
-//	return output;
-//}
 
 /*
  /home/abba/caffe/toys/ValidClicks/train.prototxt /guten/data/ValidClicks/data/v.caffemodel
