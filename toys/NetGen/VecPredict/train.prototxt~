@@ -8,7 +8,7 @@ layer {
     phase: TRAIN
   }
   hdf5_data_param {
-    source: "/devlink/github/test/toys/NetGen/VecPredict/train_list.txt"
+    source: "/home/abba/caffe-recurrent/toys/WordEmbed/VecPredict/train_list.txt"
     batch_size: 128
   }
 }
@@ -21,7 +21,7 @@ layer {
     phase: TEST
   }
   hdf5_data_param {
-    source: "/devlink/github/test/toys/NetGen/VecPredict/test_list.txt"
+    source: "/home/abba/caffe-recurrent/toys/WordEmbed/VecPredict/test_list.txt"
     batch_size: 1
   }
 }
