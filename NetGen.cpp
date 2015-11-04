@@ -1,5 +1,14 @@
 #include <cstdlib>
+#include <google/protobuf/io/coded_stream.h>
+#include <google/protobuf/io/zero_copy_stream_impl.h>
+#include <google/protobuf/text_format.h>
+
 #include <caffe/caffe.hpp>
+#include "caffe/common.hpp"
+#include "caffe/proto/caffe.pb.h"
+#include "caffe/util/io.hpp"
+#include "caffe/util/upgrade_proto.hpp"
+
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
@@ -10,7 +19,14 @@
 #include <vector>
 #include <iostream>
 #include <fstream>
+#include <map>
 #include "H5Cpp.h"
+
+
+#include "caffe/common.hpp"
+#include "caffe/proto/caffe.pb.h"
+#include "caffe/util/io.hpp"
+#include "caffe/util/upgrade_proto.hpp"
 
 #ifndef H5_NO_NAMESPACE
     using namespace H5;
@@ -106,6 +122,22 @@ void NGNet::Init(	) {
 	
 	/* Load the network. */
 	net_.reset(new Net<float>(model_file_, TEST));
+	NetParameter param;
+	CHECK(ReadProtoFromTextFile(model_file_, &param))
+		<< "Failed to parse NetParameter file: " << model_file_;
+	for (int ip = 0; ip < param.layer_size(); ip++) {
+		LayerParameter layer_param = param.layer(ip);
+		if (layer_param.has_inner_product_param()) {
+			InnerProductParameter* inner_product_param = layer_param.mutable_inner_product_param();
+			int num_output = inner_product_param->num_output();
+			if (num_output > 0) {
+				inner_product_param->set_num_output(num_output * 2); 
+			}
+		}
+	}
+//	//param.mutable_state()->set_phase(phase);
+	Net<float> * new_net = new Net<float>(param);
+	
 	net_->CopyTrainedLayersFrom(trained_file_);
 
 	
@@ -437,13 +469,13 @@ int main(int argc, char** argv) {
 	classifier.PreInit();
 	vector<NGNet> nets;
 	nets.push_back(NGNet(
-		"/home/abba/caffe-recurrent/toys/WordEmbed/VecPredict/train.prototxt",
-		"/devlink/caffe/data/WordEmbed/VecPredict/models/v_iter_83869.caffemodel",
+		"/devlink/github/test/toys/NetGen/VecPredict/train.prototxt",
+		"/devlink/caffe/data/NetGen/VecPredict/models/n_iter_82634.caffemodel",
 		"data", "SquashOutput"));
-	nets.push_back(NGNet(
-		"/home/abba/caffe-recurrent/toys/WordEmbed/GramValid/train.prototxt",
-		"/devlink/caffe/data/WordEmbed/GramValid/models/g_iter_500000.caffemodel",
-		"data", "SquashOutput"));
+//	nets.push_back(NGNet(
+//		"/home/abba/caffe-recurrent/toys/WordEmbed/GramValid/train.prototxt",
+//		"/devlink/caffe/data/WordEmbed/GramValid/models/g_iter_500000.caffemodel",
+//		"data", "SquashOutput"));
 	classifier.Init(nets,
 					word_file_name, 
 					word_vector_file_name);
